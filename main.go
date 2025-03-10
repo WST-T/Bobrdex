@@ -7,3 +7,7 @@ import (
 func main() {
 	fmt.Println("Hello, World!")
 }
+
+// Run the program
+// $ go run main.go
+// Hello, World!
