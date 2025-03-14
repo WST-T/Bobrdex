@@ -11,8 +11,6 @@ type cliCommand struct {
 	callback    func() error
 }
 
-// Break initialization cycle by making commandRegistry a var
-// and initializing it in an init function
 var commandRegistry map[string]cliCommand
 
 func init() {
