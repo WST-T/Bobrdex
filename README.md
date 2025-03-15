@@ -31,6 +31,7 @@ Welcome to Bobrdex, an adorable command-line Pokédex application that lets you 
 
 1. **Start your adventure:**
    ```
+   go build ->
    ./Bobrdex
    ```
 
