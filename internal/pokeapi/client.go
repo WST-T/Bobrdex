@@ -2,16 +2,45 @@ package pokeapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/WST-T/Bobrdex/internal/pokecache"
 )
 
 type Config struct {
-	Next     string
-	Previous string
+	Next          string
+	Previous      string
+	CaughtPokemon map[string]Pokemon
+}
+
+type Pokemon struct {
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	BaseExperience int    `json:"base_experience"`
+	Height         int    `json:"height"`
+	Weight         int    `json:"weight"`
+	Stats          []struct {
+		BaseStat int `json:"base_stat"`
+		Effort   int `json:"effort"`
+		Stat     struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"stat"`
+	} `json:"stats"`
+	Types []struct {
+		Slot int `json:"slot"`
+		Type struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"type"`
+	} `json:"types"`
+	Sprites struct {
+		FrontDefault string `json:"front_default"`
+	} `json:"sprites"`
 }
 
 type LocationAreaResp struct {
@@ -77,6 +106,7 @@ type LocationAreaDetailResp struct {
 }
 
 const baseURL = "https://pokeapi.co/api/v2/location-area/"
+const pokemonURL = "https://pokeapi.co/api/v2/pokemon/"
 
 var cache = pokecache.NewCache(5 * time.Minute)
 
@@ -146,4 +176,41 @@ func GetLocationAreaDetails(locationAreaName string) (LocationAreaDetailResp, er
 		return LocationAreaDetailResp{}, err
 	}
 	return locationDetailResp, nil
+}
+
+func GetPokemon(pokemonName string) (Pokemon, error) {
+	url := pokemonURL + strings.ToLower(pokemonName)
+
+	if cachedData, found := cache.Get(url); found {
+		var pokemon Pokemon
+		err := json.Unmarshal(cachedData, &pokemon)
+		if err != nil {
+			return Pokemon{}, err
+		}
+		return pokemon, nil
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return Pokemon{}, fmt.Errorf("Pokemon not found: %s", pokemonName)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	cache.Add(url, body)
+
+	var pokemon Pokemon
+	err = json.Unmarshal(body, &pokemon)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	return pokemon, nil
 }

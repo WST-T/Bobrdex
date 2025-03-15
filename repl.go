@@ -10,7 +10,7 @@ import (
 )
 
 func startRepl() {
-	cfg := &pokeapi.Config{}
+	cfg := &pokeapi.Config{CaughtPokemon: make(map[string]pokeapi.Pokemon)}
 	reader := bufio.NewScanner(os.Stdin)
 
 	fmt.Println("Welcome to the Pokedex!")

@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
+	"strings"
 
 	"github.com/WST-T/Bobrdex/internal/pokeapi"
 )
@@ -41,6 +43,11 @@ func init() {
 			name:        "explore <location area>",
 			description: "Explore a location area",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch <pokemon>",
+			description: "Attempt to catch a Pokemon",
+			callback:    commandCatch,
 		},
 	}
 }
@@ -118,6 +125,42 @@ func commandExplore(cfg *pokeapi.Config, args ...string) error {
 		for _, encounter := range locationArea.PokemonEncounters {
 			fmt.Printf("  %s\n", encounter.Pokemon.Name)
 		}
+	}
+
+	return nil
+}
+
+func commandCatch(cfg *pokeapi.Config, args ...string) error {
+	if len(args) == 0 {
+		fmt.Println("Please provide a Pokemon name.")
+		return nil
+	}
+
+	pokemonName := strings.ToLower(args[0])
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+
+	pokemon, err := pokeapi.GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	catchChance := 0.0
+	if pokemon.BaseExperience <= 0 {
+		catchChance = 0.7
+	} else {
+		catchChance = 1.0 - float64(pokemon.BaseExperience)/1000.0
+		if catchChance < 0.3 {
+			catchChance = 0.3
+		}
+	}
+
+	randValue := rand.Float64()
+	caught := randValue <= catchChance
+	if caught {
+		fmt.Printf("%s was caught!\n", pokemon.Name)
+		cfg.CaughtPokemon[pokemon.Name] = pokemon
+	} else {
+		fmt.Printf("%s broke free!\n", pokemon.Name)
 	}
 
 	return nil
