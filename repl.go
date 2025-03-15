@@ -35,7 +35,13 @@ func startRepl() {
 				fmt.Printf("Unknown command: %s\n", commandName)
 				continue
 			}
-			err := command.callback(cfg)
+
+			args := []string{}
+			if len(cleaned) > 1 {
+				args = cleaned[1:]
+			}
+
+			err := command.callback(cfg, args...)
 			if err != nil {
 				fmt.Printf("Error executing command: %s\n", err)
 			}
