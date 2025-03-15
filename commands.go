@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/WST-T/Bobrdex/internal/pokeapi"
@@ -53,6 +54,11 @@ func init() {
 			name:        "inspect <pokemon>",
 			description: "View information about a caught Pokemon",
 			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "View all caught Pokemon",
+			callback:    commandPokedex,
 		},
 	}
 }
@@ -198,6 +204,39 @@ func commandInspect(cfg *pokeapi.Config, args ...string) error {
 	for _, t := range pokemon.Types {
 		fmt.Printf("  %s\n", t.Type.Name)
 	}
+
+	return nil
+}
+
+func commandPokedex(cfg *pokeapi.Config, args ...string) error {
+	if len(cfg.CaughtPokemon) == 0 {
+		fmt.Println("You haven't caught any Pokemon yet.")
+		return nil
+	}
+
+	fmt.Println("Caught Pokemon:")
+
+	var names []string
+	for name := range cfg.CaughtPokemon {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	for _, name := range names {
+		pokemon := cfg.CaughtPokemon[name]
+		fmt.Printf("  %s\n", pokemon.Name)
+
+		for i, t := range pokemon.Types {
+			if i > 0 {
+				fmt.Print(", ")
+			}
+			fmt.Print(t.Type.Name)
+		}
+		fmt.Println()
+	}
+
+	fmt.Printf("Total caught: %d\n", len(cfg.CaughtPokemon))
 
 	return nil
 }
