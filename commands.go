@@ -49,6 +49,11 @@ func init() {
 			description: "Attempt to catch a Pokemon",
 			callback:    commandCatch,
 		},
+		"inspect": {
+			name:        "inspect <pokemon>",
+			description: "View information about a caught Pokemon",
+			callback:    commandInspect,
+		},
 	}
 }
 
@@ -161,6 +166,37 @@ func commandCatch(cfg *pokeapi.Config, args ...string) error {
 		cfg.CaughtPokemon[pokemon.Name] = pokemon
 	} else {
 		fmt.Printf("%s broke free!\n", pokemon.Name)
+	}
+
+	return nil
+}
+
+func commandInspect(cfg *pokeapi.Config, args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("please provide a Pokemon name")
+	}
+
+	pokemonName := strings.ToLower(args[0])
+
+	pokemon, ok := cfg.CaughtPokemon[pokemonName]
+	if !ok {
+		fmt.Printf("You haven't caught %s yet.\n", pokemonName)
+		return nil
+	}
+
+	fmt.Printf("Pokemon: %s\n", pokemon.Name)
+	fmt.Printf("Base experience: %d\n", pokemon.BaseExperience)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+
+	fmt.Println("Stats:")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf("  %s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+
+	fmt.Println("Types:")
+	for _, t := range pokemon.Types {
+		fmt.Printf("  %s\n", t.Type.Name)
 	}
 
 	return nil
