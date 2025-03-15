@@ -5,10 +5,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/WST-T/Bobrdex/internal/pokeapi"
 )
 
 func startRepl() {
+	cfg := &pokeapi.Config{}
 	reader := bufio.NewScanner(os.Stdin)
+
+	fmt.Println("Welcome to the Pokedex!")
+	fmt.Println("Type 'help' to see available commands")
+
 	for {
 		fmt.Print("Pokedex > ")
 		reader.Scan()
@@ -19,10 +26,8 @@ func startRepl() {
 			continue
 		}
 
-		// Clean the user input
 		cleaned := cleanInput(text)
 
-		// Check if there is at least one command
 		if len(cleaned) > 0 {
 			commandName := cleaned[0]
 			command, ok := commandRegistry[commandName]
@@ -30,7 +35,7 @@ func startRepl() {
 				fmt.Printf("Unknown command: %s\n", commandName)
 				continue
 			}
-			err := command.callback()
+			err := command.callback(cfg)
 			if err != nil {
 				fmt.Printf("Error executing command: %s\n", err)
 			}
